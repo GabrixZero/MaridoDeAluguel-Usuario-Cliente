@@ -123,7 +123,6 @@ class UserRepository {
     }
 
     suspend fun forgotPassword(email: String): Result<String> = try {
-        // TODO: Implementar Cognito Forgot Password se necessário no futuro
         Result.failure(Exception("Funcionalidade em migração"))
     } catch (e: Exception) { Result.failure(Exception("Erro")) }
 
