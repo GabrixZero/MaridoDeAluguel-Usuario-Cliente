@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="64ec9e44-0320-4d8d-9922-56fe7edb85dd" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/doesit-usuario/.idea/doesit-usuario.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/doesit-usuario/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/copilotDiffState.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/doesit-usuario/.gradle/8.13/checksums/checksums.lock" beforeDir="false" afterPath="$PROJECT_DIR$/doesit-usuario/.gradle/8.13/checksums/checksums.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/doesit-usuario/.gradle/8.13/executionHistory/executionHistory.bin" beforeDir="false" afterPath="$PROJECT_DIR$/doesit-usuario/.gradle/8.13/executionHistory/executionHistory.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/doesit-usuario/.gradle/8.13/executionHistory/executionHistory.lock" beforeDir="false" afterPath="$PROJECT_DIR$/doesit-usuario/.gradle/8.13/executionHistory/executionHistory.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/doesit-usuario/.gradle/8.13/fileHashes/fileHashes.bin" beforeDir="false" afterPath="$PROJECT_DIR$/doesit-usuario/.gradle/8.13/fileHashes/fileHashes.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/doesit-usuario/.gradle/8.13/fileHashes/fileHashes.lock" beforeDir="false" afterPath="$PROJECT_DIR$/doesit-usuario/.gradle/8.13/fileHashes/fileHashes.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/doesit-usuario/.gradle/8.13/fileHashes/resourceHashesCache.bin" beforeDir="false" afterPath="$PROJECT_DIR$/doesit-usuario/.gradle/8.13/fileHashes/resourceHashesCache.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/doesit-usuario/.gradle/buildOutputCleanup/buildOutputCleanup.lock" beforeDir="false" afterPath="$PROJECT_DIR$/doesit-usuario/.gradle/buildOutputCleanup/buildOutputCleanup.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/doesit-usuario/.gradle/buildOutputCleanup/cache.properties" beforeDir="false" afterPath="$PROJECT_DIR$/doesit-usuario/.gradle/buildOutputCleanup/cache.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/doesit-usuario/.gradle/buildOutputCleanup/outputFiles.bin" beforeDir="false" afterPath="$PROJECT_DIR$/doesit-usuario/.gradle/buildOutputCleanup/outputFiles.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/doesit-usuario/.gradle/config.properties" beforeDir="false" afterPath="$PROJECT_DIR$/doesit-usuario/.gradle/config.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/doesit-usuario/.gradle/file-system.probe" beforeDir="false" afterPath="$PROJECT_DIR$/doesit-usuario/.gradle/file-system.probe" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/doesit-usuario/.idea/caches/deviceStreaming.xml" beforeDir="false" afterPath="$PROJECT_DIR$/doesit-usuario/.idea/caches/deviceStreaming.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/doesit-usuario/app/src/main/java/com/example/doesitusuario/ui/screens/login/ForgotPasswordModal.kt" beforeDir="false" afterPath="$PROJECT_DIR$/doesit-usuario/app/src/main/java/com/example/doesitusuario/ui/screens/login/ForgotPasswordModal.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/doesit-usuario/app/src/main/java/com/example/doesitusuario/ui/screens/login/LoginScreen.kt" beforeDir="false" afterPath="$PROJECT_DIR$/doesit-usuario/app/src/main/java/com/example/doesitusuario/ui/screens/login/LoginScreen.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/doesit-usuario/app/src/main/java/com/example/doesitusuario/ui/screens/login/RegisterScreen.kt" beforeDir="false" afterPath="$PROJECT_DIR$/doesit-usuario/app/src/main/java/com/example/doesitusuario/ui/screens/login/RegisterScreen.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/doesit-usuario/app/src/main/java/com/example/doesitusuario/ui/screens/profiles/ProfileScreen.kt" beforeDir="false" afterPath="$PROJECT_DIR$/doesit-usuario/app/src/main/java/com/example/doesitusuario/ui/screens/profiles/ProfileScreen.kt" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="CopilotChats">
+    <option name="panelChat">
+      <chat>
+        <option name="activeSessionId" value="4fb38bf0-11b5-4a7c-8e8e-d34516339100" />
+        <option name="sessions">
+          <session>
+            <option name="chatType" value="PANEL" />
+            <option name="id" value="4fb38bf0-11b5-4a7c-8e8e-d34516339100" />
+            <option name="modeId" value="Ask" />
+            <option name="modelType" value="builtin_family" />
+            <option name="modelValue" value="auto" />
+            <option name="targetType" value="LOCAL" />
+          </session>
+        </option>
+        <option name="type" value="PANEL" />
+      </chat>
+    </option>
+  </component>
+  <component name="CopilotPersistence">
+    <persistenceIdMap>
+      <entry key="_C:/Users/Gabri/Downloads/TCC/MaridoDeAluguel-Usuario-Cliente" value="3EjYzbZyGGV0nfgqfNyjdOB3VUg" />
+    </persistenceIdMap>
+  </component>
+  <component name="ExternalProjectsData">
+    <projectState path="$PROJECT_DIR$/doesit-usuario">
+      <ProjectState />
+    </projectState>
+  </component>
+  <component name="ExternalProjectsManager">
+    <system id="GRADLE">
+      <state>
+        <projects_view>
+          <tree_state>
+            <expand>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="DoesItUsuario" type="f1a62948:ProjectNode" />
+              </path>
+            </expand>
+            <select />
+          </tree_state>
+        </projects_view>
+      </state>
+    </system>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "customColor": "",
+  "associatedIndex": 2
+}]]></component>
+  <component name="ProjectId" id="3EjYzbZyGGV0nfgqfNyjdOB3VUg" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "git-widget-placeholder": "main",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/Gabri/Downloads/TCC/MaridoDeAluguel-Usuario-Cliente",
+    "nodejs_package_manager_path": "npm"
+  }
+}]]></component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="64ec9e44-0320-4d8d-9922-56fe7edb85dd" name="Changes" comment="" />
+      <created>1780693708145</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1780693708145</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="github-copilot-workspace">
+    <instructionFileLocations>
+      <option value=".github/instructions" />
+    </instructionFileLocations>
+    <promptFileLocations>
+      <option value=".github/prompts" />
+    </promptFileLocations>
+  </component>
+</project>

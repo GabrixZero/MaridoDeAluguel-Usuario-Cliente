@@ -201,12 +201,6 @@ fun ForgotPasswordModal(
                                         onConfirm = {
                                             val inputCode = code.joinToString("")
                                             
-                                            // DEBUG MASTER CODE: "000000"
-                                            if (inputCode == "000000") {
-                                                step = ForgotStep.NEW_PASSWORD
-                                                return@CodeStep
-                                            }
-
                                             // Check 15min expiration
                                             val isExpired = System.currentTimeMillis() - codeSentTime > 15 * 60 * 1000
                                             if (isExpired) {
