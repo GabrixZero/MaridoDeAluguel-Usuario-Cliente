@@ -5,7 +5,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.*
@@ -53,6 +55,7 @@ fun LoginScreen(
         if (errorFromVM.isNotEmpty()) {
             errorMessage = errorFromVM
             isError = true
+            senha = "" // Limpa a senha após erro, igual ao comportamento do Prestador
             delay(5000)
             isError = false
             viewModel.clearMessages()
@@ -71,7 +74,7 @@ fun LoginScreen(
 
     Box(Modifier.fillMaxSize().background(AppColors.Background)) {
         Column(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())
         ) {
             Box(
                 modifier = Modifier
@@ -198,7 +201,7 @@ fun LoginScreen(
             visible = isError && errorMessage.isNotEmpty(),
             enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
             exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut(),
-            modifier = Modifier.padding(top = 40.dp)
+            modifier = Modifier.padding(top = 40.dp).align(Alignment.TopCenter)
         ) {
             ErrorBanner(message = errorMessage)
         }
@@ -207,7 +210,7 @@ fun LoginScreen(
             visible = showSuccess && successMessage.isNotEmpty(),
             enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
             exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut(),
-            modifier = Modifier.padding(top = 40.dp)
+            modifier = Modifier.padding(top = 40.dp).align(Alignment.TopCenter)
         ) {
             SuccessBanner(message = successMessage)
         }

@@ -85,7 +85,11 @@ fun RegisterScreen(
         val today = Calendar.getInstance()
         val birthDate = Calendar.getInstance().apply { set(year, month - 1, day) }
         var age = today.get(Calendar.YEAR) - birthDate.get(Calendar.YEAR)
-        if (today.get(Calendar.DAY_OF_YEAR) < birthDate.get(Calendar.DAY_OF_YEAR)) age--
+        // Correção: comparar mês e dia em vez de DAY_OF_YEAR (impreciso entre anos diferentes)
+        val birthdayPassedThisYear = today.get(Calendar.MONTH) > birthDate.get(Calendar.MONTH) ||
+            (today.get(Calendar.MONTH) == birthDate.get(Calendar.MONTH) &&
+             today.get(Calendar.DAY_OF_MONTH) >= birthDate.get(Calendar.DAY_OF_MONTH))
+        if (!birthdayPassedThisYear) age--
 
         return when {
             age < 18 -> "Deve ter pelo menos 18 anos"
@@ -101,6 +105,15 @@ fun RegisterScreen(
             delay(5000)
             isError = false
             viewModel.clearMessages()
+        }
+    }
+
+    // Auto-dismiss local error banner após 5s
+    LaunchedEffect(isError) {
+        if (isError) {
+            delay(5000)
+            isError = false
+            errorMessage = ""
         }
     }
 
@@ -205,7 +218,7 @@ fun RegisterScreen(
                     Box(Modifier.weight(2f)) {
                         DarkTextField(
                             value = cidade,
-                            onValueChange = { cidade = it },
+                            onValueChange = { if (it.all { c -> c.isLetter() || c.isWhitespace() }) cidade = it },
                             label = "Cidade",
                             placeholder = "Sua cidade",
                             isError = errorFields.contains("cidade")
@@ -255,7 +268,7 @@ fun RegisterScreen(
                         if (bairro.isBlank()) currentErrors.add("bairro")
                         if (cidade.isBlank()) currentErrors.add("cidade")
                         if (estado.isBlank()) currentErrors.add("estado")
-                        if (celular.isBlank()) currentErrors.add("celular")
+                        if (celular.length < 10 || celular.length > 11) currentErrors.add("celular")
                         if (!email.contains("@")) currentErrors.add("email")
                         if (!isPasswordStrong) currentErrors.add("senha")
 
@@ -295,15 +308,6 @@ fun RegisterScreen(
                     }
                 }
                 Spacer(Modifier.height(56.dp))
-            }
-        }
-
-        // Logic to dismiss local error after 5s
-        LaunchedEffect(isError) {
-            if (isError) {
-                delay(5000)
-                isError = false
-                errorMessage = ""
             }
         }
 

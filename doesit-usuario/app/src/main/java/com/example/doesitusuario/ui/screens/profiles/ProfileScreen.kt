@@ -45,12 +45,10 @@ fun ProfileScreen(
     val scope = rememberCoroutineScope()
     val repository = remember { UserRepository() }
 
-    // Estados dos campos
     var nome by remember { mutableStateOf(SessionManager.userName) }
     var celular by remember { mutableStateOf(SessionManager.userPhone) }
     var email by remember { mutableStateOf(SessionManager.userEmail) }
-    
-    // Valores "base" para comparar se houve mudança (atualizados após salvar)
+
     var baseNome by remember { mutableStateOf(SessionManager.userName) }
     var baseCelular by remember { mutableStateOf(SessionManager.userPhone) }
     var baseEmail by remember { mutableStateOf(SessionManager.userEmail) }
@@ -61,11 +59,22 @@ fun ProfileScreen(
     var showError by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf("") }
 
-    // Sincronizar com a Lambda /usuario ao entrar na tela
+    val dataNascimentoExibida = remember(SessionManager.userBirthDate) {
+        formatDateBR(SessionManager.userBirthDate).ifBlank { "—" }
+    }
+
+    val cpfMascarado = remember(SessionManager.userCpf) {
+        maskCpf(SessionManager.userCpf)
+    }
+
+    val isPhoneValid = celular.length == 11
+    val hasChanges = (nome != baseNome) || (celular != baseCelular) || (email != baseEmail)
+    val canSave = hasChanges && nome.isNotBlank() && isPhoneValid && email.isNotBlank() && !isSaving
+
     LaunchedEffect(Unit) {
         isLoading = true
         repository.getCurrentUser().fold(
-            onSuccess = { 
+            onSuccess = {
                 nome = SessionManager.userName
                 celular = SessionManager.userPhone
                 email = SessionManager.userEmail
@@ -82,11 +91,6 @@ fun ProfileScreen(
         )
     }
 
-    val hasChanges = (nome != baseNome) || (celular != baseCelular) || (email != baseEmail)
-    val isPhoneValid = celular.length == 11
-    val canSave = hasChanges && nome.isNotBlank() && isPhoneValid && email.isNotBlank() && !isSaving
-
-    // Efeito para sumir banners
     LaunchedEffect(showSuccess, showError) {
         if (showSuccess || showError) {
             delay(5000)
@@ -100,11 +104,18 @@ fun ProfileScreen(
             containerColor = AppColors.Background,
             topBar = {
                 CenterAlignedTopAppBar(
-                    title = { Text("Meu Perfil", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = AppColors.TextPrimary) },
-                    navigationIcon = { 
-                        IconButton(onClick = onBack) { 
+                    title = {
+                        Text(
+                            "Meu Perfil",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp,
+                            color = AppColors.TextPrimary
+                        )
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = onBack) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = AppColors.TextPrimary)
-                        } 
+                        }
                     },
                     colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = AppColors.Background)
                 )
@@ -152,7 +163,6 @@ fun ProfileScreen(
                 contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
-                // Avatar Section
                 item {
                     Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
                         Box(contentAlignment = Alignment.BottomEnd) {
@@ -160,10 +170,17 @@ fun ProfileScreen(
                                 Modifier.size(120.dp).clip(CircleShape).background(AppColors.SurfaceVariant),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Icon(Icons.Default.Person, null, modifier = Modifier.size(60.dp), tint = AppColors.TextDisabled)
+                                Icon(
+                                    Icons.Default.Person, null,
+                                    modifier = Modifier.size(60.dp),
+                                    tint = AppColors.TextDisabled
+                                )
                             }
                             Box(
-                                Modifier.size(36.dp).clip(CircleShape).background(AppColors.Primary)
+                                Modifier
+                                    .size(36.dp)
+                                    .clip(CircleShape)
+                                    .background(AppColors.Primary)
                                     .padding(8.dp),
                                 contentAlignment = Alignment.Center
                             ) {
@@ -173,11 +190,10 @@ fun ProfileScreen(
                     }
                 }
 
-                // Informações Pessoais
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                         Text("Informações Pessoais", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = AppColors.TextPrimary)
-                        
+
                         DarkTextField(
                             value = nome,
                             onValueChange = { nome = it },
@@ -185,23 +201,16 @@ fun ProfileScreen(
                             placeholder = "Digite seu nome"
                         )
 
-                        ReadOnlyField(
-                            label = "CPF (Inalterável)",
-                            value = maskCpf(SessionManager.userCpf)
-                        )
+                        ReadOnlyField(label = "CPF (Inalterável)", value = cpfMascarado)
 
-                        ReadOnlyField(
-                            label = "Data de Nascimento (Inalterável)",
-                            value = formatDateBR(SessionManager.userBirthDate)
-                        )
+                        ReadOnlyField(label = "Data de Nascimento (Inalterável)", value = dataNascimentoExibida)
                     }
                 }
 
-                // Contato
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                         Text("Contato", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = AppColors.TextPrimary)
-                        
+
                         DarkTextField(
                             value = email,
                             onValueChange = { email = it },
@@ -209,21 +218,18 @@ fun ProfileScreen(
                             placeholder = "seu@email.com"
                         )
 
-                        Box {
-                            DarkTextField(
-                                value = celular,
-                                onValueChange = { celular = it },
-                                label = "Celular",
-                                placeholder = "(00) 00000-0000",
-                                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
-                                    keyboardType = KeyboardType.Text
-                                )
+                        DarkTextField(
+                            value = celular,
+                            onValueChange = { if (it.all { c -> c.isDigit() } && it.length <= 11) celular = it },
+                            label = "Celular",
+                            placeholder = "11912341234",
+                            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                                keyboardType = KeyboardType.Phone
                             )
-                        }
+                        )
                     }
                 }
 
-                // Botão Salvar
                 item {
                     Spacer(Modifier.height(8.dp))
                     if (isLoading) {
@@ -236,11 +242,9 @@ fun ProfileScreen(
                                 scope.launch {
                                     isSaving = true
                                     message = ""
-                                    repository.updateProfile(mapOf(
-                                        "nome" to nome,
-                                        "email" to email,
-                                        "telefone" to celular
-                                    )).fold(
+                                    repository.updateProfile(
+                                        mapOf("nome" to nome, "email" to email, "telefone" to celular)
+                                    ).fold(
                                         onSuccess = {
                                             message = "Perfil atualizado com sucesso!"
                                             showSuccess = true
@@ -277,7 +281,6 @@ fun ProfileScreen(
             }
         }
 
-        // Banners de Feedback (Top) - Outside Scaffold to ensure they are on top
         if (showSuccess) {
             Box(Modifier.padding(top = 40.dp).align(Alignment.TopCenter).zIndex(10f)) {
                 SuccessBanner(message)
@@ -315,8 +318,9 @@ fun ReadOnlyField(label: String, value: String) {
 }
 
 private fun maskCpf(cpf: String): String {
-    if (cpf.length < 11) return cpf
-    return "***.${cpf.substring(3, 6)}.${cpf.substring(6, 9)}-**"
+    val digits = cpf.filter { it.isDigit() }
+    if (digits.length < 11) return cpf
+    return "***.${digits.substring(3, 6)}.${digits.substring(6, 9)}-**"
 }
 
 class PhoneVisualTransformation : VisualTransformation {
