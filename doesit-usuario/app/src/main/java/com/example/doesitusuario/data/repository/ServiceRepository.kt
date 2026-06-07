@@ -19,7 +19,18 @@ class ServiceRepository {
         else Result.failure(Exception("Erro ao carregar dados do formulário"))
     } catch (e: Exception) { Result.failure<ServiceRequestFormResponse>(Exception("Sem conexão")) }
 
-    // Prestadores filtrados por categoria e modo (online / todos)
+    suspend fun getAvailableProviders(request: AvailableProvidersRequest) = try {
+        val r = api.getAvailableProviders(SessionManager.bearerToken(), request)
+        if (r.isSuccessful && r.body() != null) Result.success(r.body()!!.providers)
+        else Result.failure(Exception("Nenhum prestador encontrado"))
+    } catch (e: Exception) { Result.failure<List<ProviderAvailableDTO>>(Exception("Sem conexão")) }
+
+    suspend fun confirmBooking(request: ConfirmBookingRequest) = try {
+        val r = api.confirmBooking(SessionManager.bearerToken(), request)
+        if (r.isSuccessful && r.body() != null) Result.success(r.body()!!)
+        else Result.failure(Exception("Erro ao confirmar agendamento"))
+    } catch (e: Exception) { Result.failure<ConfirmBookingResponse>(Exception("Sem conexão")) }
+
     suspend fun getProvidersForCategory(
         categoryId: Long,
         onlineOnly: Boolean,
@@ -58,21 +69,23 @@ class ServiceRepository {
         else Result.failure(Exception("Erro ao carregar pedido"))
     } catch (e: Exception) { Result.failure<ServiceRequestDTO>(Exception("Sem conexão")) }
 
-    suspend fun cancelRequest(id: Long) = try {
-        val r = api.cancelRequest(SessionManager.bearerToken(), id)
-        if (r.isSuccessful) Result.success(Unit)
-        else Result.failure(Exception("Erro ao cancelar"))
-    } catch (e: Exception) { Result.failure<Unit>(Exception("Sem conexão")) }
-
-    // Usuário confirma que o prestador terminou — IN_PROGRESS → COMPLETED
-    suspend fun confirmFinish(id: Long) = try {
-        val r = api.confirmFinish(SessionManager.bearerToken(), id)
-        if (r.isSuccessful) Result.success(Unit)
+    // Rota Única de Atualização (@PUT("atualizar-pedido"))
+    suspend fun updateOrderStatus(requestId: Long, newStatusId: Int) = try {
+        val r = api.updateOrderStatus(
+            SessionManager.bearerToken(),
+            UpdateOrderStatusRequest(requestId, newStatusId)
+        )
+        if (r.isSuccessful) Result.success(r.body()!!)
         else {
             val err = r.errorBody()?.string() ?: ""
-            Result.failure(Exception(if (err.isNotBlank()) err else "Erro ao confirmar finalização"))
+            Result.failure(Exception(if (err.isNotBlank()) err else "Erro ao atualizar pedido"))
         }
-    } catch (e: Exception) { Result.failure<Unit>(Exception("Sem conexão")) }
+    } catch (e: Exception) { Result.failure<UpdateOrderStatusResponse>(Exception("Sem conexão")) }
+
+    // Métodos de conveniência baseados nos status fornecidos:
+    // 3 - CONCLUIDO, 4 - CANCELADO
+    suspend fun cancelRequest(id: Long) = updateOrderStatus(id, 4)
+    suspend fun confirmFinish(id: Long) = updateOrderStatus(id, 3)
 
     suspend fun rate(serviceRequestId: Long, stars: Int, comment: String) = try {
         val r = api.rate(SessionManager.bearerToken(), RatingRequest(serviceRequestId, stars, comment))

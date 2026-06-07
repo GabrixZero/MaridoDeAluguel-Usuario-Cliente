@@ -1,12 +1,8 @@
 package com.example.doesitusuario.ui.screens.orders
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -21,14 +17,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.zIndex
 import com.example.doesitusuario.data.model.ServiceRequestDTO
 import com.example.doesitusuario.data.repository.ServiceRepository
 import com.example.doesitusuario.ui.screens.login.ErrorBanner
@@ -97,8 +91,6 @@ fun OrderDetailScreen(
                 }
                 else -> {
                     val p = pedido!!
-                    val isProvider = p.myRole == "PRESTADOR"
-                    val isClient = p.myRole == "CLIENTE"
                     
                     Column(
                         Modifier.fillMaxSize().padding(padding)
@@ -118,10 +110,9 @@ fun OrderDetailScreen(
                             Spacer(Modifier.width(16.dp))
                             Column(Modifier.weight(1f)) {
                                 Text(p.serviceName, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = AppColors.TextPrimary)
-                                val subTitle = if (isClient) (p.providerName ?: "Aguardando prestador") else (p.clientName ?: "Cliente")
-                                Text(subTitle, fontSize = 14.sp, color = AppColors.TextSecondary)
+                                Text(p.providerName ?: "Aguardando prestador", fontSize = 14.sp, color = AppColors.TextSecondary)
                             }
-                            StatusBadge(p.status)
+                            StatusBadge(p.status, p.statusId ?: 0)
                         }
 
                         Spacer(Modifier.height(28.dp))
@@ -142,10 +133,10 @@ fun OrderDetailScreen(
 
                         Spacer(Modifier.height(36.dp))
 
-                        // ── Ações por status e Role ───────────────────────────
-                        val statusUpper = p.status.uppercase()
-                        when (statusUpper) {
-                            "PENDENTE", "PENDING" -> if (isClient) {
+                        // ── Ações Baseadas no statusId ───────────────────────
+                        // 1: PENDENTE | 2: AGENDADO | 3: CONCLUIDO | 4: CANCELADO | 5: EM ANDAMENTO
+                        when (p.statusId) {
+                            1, 2 -> { // Pendente ou Agendado: Pode cancelar
                                 ActionButton(
                                     text = "Cancelar Solicitação", isError = true,
                                     onClick = {
@@ -162,33 +153,7 @@ fun OrderDetailScreen(
                                 )
                             }
 
-                            "AGENDADO", "ACCEPTED" -> {
-                                if (isProvider) {
-                                    ActionButton(
-                                        text = "Iniciar Serviço",
-                                        onClick = { /* Implementar início de serviço se houver rota */ },
-                                        isLoading = isActionLoading
-                                    )
-                                    Spacer(Modifier.height(12.dp))
-                                }
-                                
-                                ActionButton(
-                                    text = "Cancelar Serviço", isError = true,
-                                    onClick = {
-                                        scope.launch {
-                                            isActionLoading = true
-                                            repository.cancelRequest(orderId).fold(
-                                                onSuccess = { onNavigateToHistory() },
-                                                onFailure = { bannerError = it.message ?: "Erro ao cancelar" }
-                                            )
-                                            isActionLoading = false
-                                        }
-                                    },
-                                    isLoading = isActionLoading
-                                )
-                            }
-
-                            "EM ANDAMENTO", "IN_PROGRESS" -> if (isClient) {
+                            5 -> { // Em andamento: Pode concluir
                                 ActionButton(
                                     text = "Confirmar Finalização",
                                     onClick = {
@@ -196,11 +161,11 @@ fun OrderDetailScreen(
                                             isActionLoading = true
                                             repository.confirmFinish(orderId).fold(
                                                 onSuccess = {
-                                                    bannerSuccess = "Finalização confirmada!"
+                                                    bannerSuccess = "Serviço concluído com sucesso!"
                                                     delay(1000)
                                                     loadOrder()
                                                 },
-                                                onFailure = { bannerError = it.message ?: "Erro ao confirmar" }
+                                                onFailure = { bannerError = it.message ?: "Erro ao concluir" }
                                             )
                                             isActionLoading = false
                                         }
@@ -209,7 +174,7 @@ fun OrderDetailScreen(
                                 )
                             }
 
-                            "CONCLUIDO", "COMPLETED" -> if (isClient) {
+                            3 -> { // Concluído: Avaliação
                                 if (alreadyRated) {
                                     Card(
                                         modifier = Modifier.fillMaxWidth(),
@@ -235,14 +200,9 @@ fun OrderDetailScreen(
                                         isLoading = isActionLoading
                                     )
                                 }
-                                
-                                Spacer(Modifier.height(16.dp))
-                                ActionButton(
-                                    text = "Contestar Serviço", isError = true,
-                                    onClick = { bannerError = "Funcionalidade de contestação em breve" },
-                                    isLoading = false
-                                )
                             }
+                            
+                            4 -> { /* Cancelado: Sem botões */ }
                         }
 
                         Spacer(Modifier.height(40.dp))
@@ -266,15 +226,14 @@ fun InfoRow(label: String, value: String) {
 }
 
 @Composable
-fun StatusBadge(status: String) {
-    val statusUpper = status.uppercase()
-    val (color, label) = when (statusUpper) {
-        "PENDENTE", "PENDING"     -> Color(0xFFFFA000) to "PENDENTE"
-        "AGENDADO", "ACCEPTED"    -> AppColors.Primary  to "AGENDADO"
-        "EM ANDAMENTO", "IN_PROGRESS" -> Color(0xFF2E7D32) to "EM ANDAMENTO"
-        "CONCLUIDO", "COMPLETED"   -> Color(0xFF2E7D32) to "CONCLUÍDO"
-        "CANCELADO", "CANCELLED"   -> AppColors.Error   to "CANCELADO"
-        else          -> AppColors.TextSecondary to status
+fun StatusBadge(status: String, statusId: Int) {
+    val (color, label) = when (statusId) {
+        1 -> Color(0xFFFFA000) to "PENDENTE"
+        2 -> AppColors.Primary  to "AGENDADO"
+        5 -> Color(0xFF2E7D32) to "EM ANDAMENTO"
+        3 -> Color(0xFF2E7D32) to "CONCLUÍDO"
+        4 -> AppColors.Error   to "CANCELADO"
+        else -> AppColors.TextSecondary to status.uppercase()
     }
     Surface(color = color.copy(alpha = 0.1f), shape = RoundedCornerShape(4.dp)) {
         Text(label, color = color, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))

@@ -22,7 +22,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import com.example.doesitusuario.data.model.ProviderDTO
+import com.example.doesitusuario.data.model.*
 import com.example.doesitusuario.data.repository.ServiceRepository
 import com.example.doesitusuario.ui.screens.login.ErrorBanner
 import com.example.doesitusuario.ui.screens.login.SuccessBanner
@@ -41,16 +41,16 @@ fun AvailableProvidersScreen(
     time: String?,
     addrId: Long,
     comment: String,
-    basePrice: Double,     // preço base da categoria (usado quando provider.specialtyPrice == null)
+    basePrice: Double,
     onBack: () -> Unit,
-    onConfirm: () -> Unit  // navega para Home após criar pedido com sucesso
+    onConfirm: () -> Unit
 ) {
     val repository = remember { ServiceRepository() }
     val scope = rememberCoroutineScope()
 
-    var providers        by remember { mutableStateOf<List<ProviderDTO>>(emptyList()) }
+    var providers        by remember { mutableStateOf<List<ProviderAvailableDTO>>(emptyList()) }
     var isLoading        by remember { mutableStateOf(true) }
-    var selectedProvider by remember { mutableStateOf<ProviderDTO?>(null) }
+    var selectedProvider by remember { mutableStateOf<ProviderAvailableDTO?>(null) }
     var isCreating       by remember { mutableStateOf(false) }
 
     var errorMsg   by remember { mutableStateOf("") }
@@ -59,18 +59,36 @@ fun AvailableProvidersScreen(
     LaunchedEffect(errorMsg)   { if (errorMsg.isNotEmpty())   { delay(5000); errorMsg   = "" } }
     LaunchedEffect(successMsg) { if (successMsg.isNotEmpty()) { delay(3000); successMsg = "" } }
 
-    val onlineOnly = mode == "Agora"
-
     LaunchedEffect(Unit) {
-        repository.getProvidersForCategory(catId, onlineOnly, onlyWomen).fold(
+        val schedule = if (mode == "Agendar" && date != null && time != null) {
+            val months = mapOf("Jan" to "01","Fev" to "02","Mar" to "03","Abr" to "04","Mai" to "05","Jun" to "06",
+                "Jul" to "07","Ago" to "08","Set" to "09","Out" to "10","Nov" to "11","Dez" to "12")
+            
+            val parts = date.replace(",", "").split(" ")
+            if (parts.size >= 3) {
+                val day = parts[0].padStart(2, '0')
+                val month = months[parts[1]] ?: "01"
+                val year = parts[2]
+                val formattedTime = if (time.contains(":")) time else "${time.take(2)}:${time.drop(2)}"
+                ScheduleDTO(date = "${year}-${month}-${day}", time = formattedTime)
+            } else null
+        } else null
+
+        val request = AvailableProvidersRequest(
+            serviceId = catId,
+            addressId = addrId,
+            womanFilter = onlyWomen,
+            isForNow = mode == "Agora",
+            serviceDescription = comment.ifBlank { "Sem descrição adicional" },
+            schedule = schedule
+        )
+
+        repository.getAvailableProviders(request).fold(
             onSuccess = { providers = it },
             onFailure = { errorMsg = it.message ?: "Erro ao carregar prestadores" }
         )
         isLoading = false
     }
-
-    // Preço efetivo para cada provider: specialty > base
-    fun effectivePrice(p: ProviderDTO): Double = p.specialtyPrice ?: basePrice
 
     Scaffold(
         containerColor = AppColors.Background,
@@ -80,7 +98,7 @@ fun AvailableProvidersScreen(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text("Escolher Prestador", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = AppColors.TextPrimary)
                         Text(
-                            if (onlineOnly) "Apenas online (modo Agora)" else "Online e offline (modo Agendar)",
+                            if (mode == "Agora") "Modo Agora" else "Modo Agendado",
                             fontSize = 12.sp, color = AppColors.TextSecondary
                         )
                     }
@@ -97,7 +115,7 @@ fun AvailableProvidersScreen(
                         Row(Modifier.fillMaxWidth().padding(bottom = 8.dp), Arrangement.SpaceBetween, Alignment.CenterVertically) {
                             Column {
                                 Text(sel.name, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = AppColors.TextPrimary)
-                                Text("Preço: R$ ${String.format(Locale.getDefault(), "%.2f", effectivePrice(sel))}",
+                                Text("Valor: R$ ${String.format(Locale.getDefault(), "%.2f", sel.value)}",
                                     fontSize = 13.sp, color = AppColors.Primary, fontWeight = FontWeight.Medium)
                             }
                             IconButton(onClick = { selectedProvider = null }) {
@@ -110,25 +128,30 @@ fun AvailableProvidersScreen(
                             val p = selectedProvider ?: return@Button
                             scope.launch {
                                 isCreating = true
-                                // Monta scheduledAt no formato ISO-8601 se modo Agendar
+                                
+                                // Formata data para o padrão DB: YYYY-MM-DD HH:MM:SS
                                 val scheduledAt = if (mode == "Agendar" && date != null && time != null) {
-                                    buildIsoDateTime(date, time)
+                                    buildDbDateTime(date, time)
                                 } else null
 
-                                repository.createRequest(
-                                    categoryId         = catId,
-                                    description        = comment,
-                                    type               = if (mode == "Agora") "IMMEDIATE" else "SCHEDULED",
-                                    scheduledAt        = scheduledAt,
-                                    preferredProviderId = p.id,
-                                    addressId          = addrId.takeIf { it > 0 }
-                                ).fold(
+                                val confirmRequest = ConfirmBookingRequest(
+                                    providerId = p.providerId,
+                                    serviceTypeId = catId,
+                                    addressId = addrId,
+                                    isForNow = mode == "Agora",
+                                    isWomanFilter = onlyWomen,
+                                    serviceDescription = comment.ifBlank { "Sem descrição" },
+                                    serviceValue = p.value,
+                                    scheduledDateTime = scheduledAt
+                                )
+
+                                repository.confirmBooking(confirmRequest).fold(
                                     onSuccess = {
-                                        successMsg = "Pedido enviado para ${p.name}!"
+                                        successMsg = "Agendamento confirmado! (ID: ${it.requestId})"
                                         delay(1500)
                                         onConfirm()
                                     },
-                                    onFailure = { errorMsg = it.message ?: "Erro ao criar pedido" }
+                                    onFailure = { errorMsg = it.message ?: "Erro ao confirmar agendamento" }
                                 )
                                 isCreating = false
                             }
@@ -168,8 +191,7 @@ fun AvailableProvidersScreen(
                         Icon(Icons.Default.PersonOff, null, Modifier.size(56.dp), tint = AppColors.TextDisabled)
                         Spacer(Modifier.height(12.dp))
                         Text(
-                            if (onlineOnly) "Nenhum prestador online no momento.\nTente o modo Agendar."
-                            else "Nenhum prestador disponível para esta categoria.",
+                            "Nenhum prestador disponível para esta solicitação no momento.",
                             color = AppColors.TextSecondary, textAlign = TextAlign.Center, lineHeight = 22.sp
                         )
                     }
@@ -179,14 +201,12 @@ fun AvailableProvidersScreen(
                     contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(providers, key = { it.id }) { provider ->
+                    items(providers, key = { it.providerId }) { provider ->
                         ProviderCard(
-                            provider       = provider,
-                            effectivePrice = effectivePrice(provider),
-                            basePrice      = basePrice,
-                            isSelected     = selectedProvider?.id == provider.id,
-                            onClick        = {
-                                selectedProvider = if (selectedProvider?.id == provider.id) null else provider
+                            provider   = provider,
+                            isSelected = selectedProvider?.providerId == provider.providerId,
+                            onClick    = {
+                                selectedProvider = if (selectedProvider?.providerId == provider.providerId) null else provider
                             }
                         )
                     }
@@ -213,14 +233,10 @@ fun AvailableProvidersScreen(
 
 @Composable
 private fun ProviderCard(
-    provider: ProviderDTO,
-    effectivePrice: Double,
-    basePrice: Double,
+    provider: ProviderAvailableDTO,
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    val hasCustomPrice = provider.specialtyPrice != null
-
     Card(
         modifier = Modifier.fillMaxWidth().clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
@@ -231,7 +247,6 @@ private fun ProviderCard(
         border = if (isSelected) androidx.compose.foundation.BorderStroke(2.dp, AppColors.Primary) else null
     ) {
         Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            // Avatar
             Surface(Modifier.size(56.dp), CircleShape,
                 if (isSelected) AppColors.Primary.copy(alpha = 0.15f) else AppColors.SurfaceVariant) {
                 Icon(Icons.Default.Person, null, Modifier.padding(14.dp),
@@ -241,41 +256,27 @@ private fun ProviderCard(
             Spacer(Modifier.width(16.dp))
 
             Column(Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(provider.name, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = AppColors.TextPrimary)
-                    if (provider.isOnline) {
-                        Spacer(Modifier.width(6.dp))
-                        Box(Modifier.size(8.dp).background(Color(0xFF34C759), CircleShape))
-                    }
-                }
+                Text(provider.name, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = AppColors.TextPrimary)
 
-                if ((provider.ratingCount ?: 0) > 0) {
-                    Spacer(Modifier.height(2.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Star, null, Modifier.size(14.dp), tint = Color(0xFFFFC107))
-                        Text(" ${String.format("%.1f", provider.rating)} (${provider.ratingCount})",
-                            fontSize = 12.sp, color = AppColors.TextSecondary)
-                    }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Star, null, Modifier.size(14.dp), tint = Color(0xFFFFC107))
+                    Text(" ${String.format("%.2f", provider.rating)} (${provider.totalServices} serviços)",
+                        fontSize = 12.sp, color = AppColors.TextSecondary)
                 }
 
                 Spacer(Modifier.height(4.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    "R$ ${String.format(Locale.getDefault(), "%.2f", provider.value)}",
+                    fontSize = 15.sp, fontWeight = FontWeight.Bold,
+                    color = if (isSelected) AppColors.Primary else AppColors.TextPrimary
+                )
+                
+                if (provider.servicesProvided.isNotEmpty()) {
                     Text(
-                        "R$ ${String.format(Locale.getDefault(), "%.2f", effectivePrice)}",
-                        fontSize = 15.sp, fontWeight = FontWeight.Bold,
-                        color = if (isSelected) AppColors.Primary else AppColors.TextPrimary
+                        provider.servicesProvided.joinToString(", "),
+                        fontSize = 11.sp, color = AppColors.TextSecondary,
+                        maxLines = 1
                     )
-                    if (hasCustomPrice) {
-                        Spacer(Modifier.width(6.dp))
-                        Surface(
-                            color = AppColors.Primary.copy(alpha = 0.1f),
-                            shape = RoundedCornerShape(4.dp)
-                        ) {
-                            Text("Preço próprio", fontSize = 10.sp, color = AppColors.Primary,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
-                        }
-                    }
                 }
             }
 
@@ -286,9 +287,8 @@ private fun ProviderCard(
     }
 }
 
-// Monta ISO-8601 a partir de "15 Mar, 2025" e "HH:mm"
-private fun buildIsoDateTime(date: String, time: String): String? = try {
-    // date format: "d Mon, yyyy" ex: "15 Mar, 2025"
+// Formata para o padrão de banco: YYYY-MM-DD HH:MM:SS
+private fun buildDbDateTime(date: String, time: String): String? = try {
     val months = mapOf("Jan" to "01","Fev" to "02","Mar" to "03","Abr" to "04","Mai" to "05","Jun" to "06",
         "Jul" to "07","Ago" to "08","Set" to "09","Out" to "10","Nov" to "11","Dez" to "12")
     val parts = date.replace(",", "").split(" ")
@@ -296,5 +296,5 @@ private fun buildIsoDateTime(date: String, time: String): String? = try {
     val month = months[parts[1]] ?: "01"
     val year  = parts[2]
     val t     = if (time.contains(":")) time else "${time.take(2)}:${time.drop(2)}"
-    "${year}-${month}-${day}T${t}:00"
+    "${year}-${month}-${day} ${t}:00"
 } catch (e: Exception) { null }

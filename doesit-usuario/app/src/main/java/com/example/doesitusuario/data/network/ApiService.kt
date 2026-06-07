@@ -42,6 +42,12 @@ interface ApiService {
     suspend fun getServiceRequestForm(): Response<ServiceRequestFormResponse>
 
     // ── Prestadores ───────────────────────────────────────────────────────────
+    @POST("retorna-profissionais-disponiveis")
+    suspend fun getAvailableProviders(
+        @Header("Authorization") token: String,
+        @Body body: AvailableProvidersRequest
+    ): Response<AvailableProvidersResponse>
+
     @GET("api/providers/for-category/{categoryId}")
     suspend fun getProvidersForCategory(
         @Header("Authorization") token: String,
@@ -51,6 +57,18 @@ interface ApiService {
     ): Response<List<ProviderDTO>>
 
     // ── Pedidos ───────────────────────────────────────────────────────────────
+    @POST("confirmar-agendamento")
+    suspend fun confirmBooking(
+        @Header("Authorization") token: String,
+        @Body body: ConfirmBookingRequest
+    ): Response<ConfirmBookingResponse>
+
+    @PUT("atualizar-pedido")
+    suspend fun updateOrderStatus(
+        @Header("Authorization") token: String,
+        @Body body: UpdateOrderStatusRequest
+    ): Response<UpdateOrderStatusResponse>
+
     @POST("api/requests")
     suspend fun createRequest(@Header("Authorization") token: String, @Body body: ServiceRequestCreate): Response<ServiceRequestDTO>
 
@@ -60,13 +78,7 @@ interface ApiService {
     @GET("detalhes-pedido")
     suspend fun getRequestById(@Query("id") id: Long): Response<ServiceRequestDTO>
 
-    @PUT("api/requests/{id}/cancel")
-    suspend fun cancelRequest(@Header("Authorization") token: String, @Path("id") id: Long): Response<ServiceRequestDTO>
-
-    @PUT("api/requests/{id}/confirm-finish")
-    suspend fun confirmFinish(@Header("Authorization") token: String, @Path("id") id: Long): Response<ServiceRequestDTO>
-
-    // ── Avaliação — parâmetro 'rating' preservado (compatível com AvaliacaoScreen) ──
+    // ── Avaliação ──
     @POST("api/ratings")
     suspend fun rate(@Header("Authorization") token: String, @Body rating: RatingRequest): Response<Any>
 

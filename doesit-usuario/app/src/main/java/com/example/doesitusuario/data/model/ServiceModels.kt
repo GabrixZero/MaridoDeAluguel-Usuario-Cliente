@@ -63,6 +63,72 @@ data class ProviderDTO(
     @SerializedName("specialtyPrice") val specialtyPrice: Double? = null
 )
 
+// Modelos para a nova rota de Profissionais Disponíveis
+data class AvailableProvidersRequest(
+    @SerializedName("id_servico")        val serviceId: Long,
+    @SerializedName("id_endereco")       val addressId: Long,
+    @SerializedName("filtro_mulher")     val womanFilter: Boolean,
+    @SerializedName("is_for_now")        val isForNow: Boolean,
+    @SerializedName("descricao_servico") val serviceDescription: String,
+    @SerializedName("agendamento")       val schedule: ScheduleDTO? = null
+)
+
+data class ScheduleDTO(
+    @SerializedName("data")    val date: String,
+    @SerializedName("horario") val time: String
+)
+
+data class AvailableProvidersResponse(
+    @SerializedName("profissionais") val providers: List<ProviderAvailableDTO>
+)
+
+data class ProviderAvailableDTO(
+    @SerializedName("id_prestador")     val providerId: Long,
+    @SerializedName("nome")             val name: String,
+    @SerializedName("nota")             val rating: Double,
+    @SerializedName("total_servicos")   val totalServices: Int,
+    @SerializedName("valor")            val value: Double,
+    @SerializedName("servicos_que_faz") val servicesProvided: List<String>,
+    @SerializedName("dados_solicitacao") val solicitationDetails: SolicitationDetailsDTO
+)
+
+data class SolicitationDetailsDTO(
+    @SerializedName("id_tipo_servico")   val serviceTypeId: Long,
+    @SerializedName("id_endereco")       val addressId: Long,
+    @SerializedName("is_for_now")        val isForNow: Boolean,
+    @SerializedName("is_woman_filter")   val isWomanFilter: Boolean,
+    @SerializedName("descricao_servico") val serviceDescription: String,
+    @SerializedName("dt_agendamento")    val scheduledDateTime: String?,
+    @SerializedName("valor_servico")     val serviceValue: Double
+)
+
+// Novos modelos para /confirmar-agendamento
+data class ConfirmBookingRequest(
+    @SerializedName("id_prestador")      val providerId: Long,
+    @SerializedName("id_tipo_servico")   val serviceTypeId: Long,
+    @SerializedName("id_endereco")       val addressId: Long,
+    @SerializedName("is_for_now")        val isForNow: Boolean,
+    @SerializedName("is_woman_filter")   val isWomanFilter: Boolean,
+    @SerializedName("descricao_servico") val serviceDescription: String,
+    @SerializedName("valor_servico")     val serviceValue: Double,
+    @SerializedName("dt_agendamento")    val scheduledDateTime: String?
+)
+
+data class ConfirmBookingResponse(
+    @SerializedName("mensagem")       val message: String,
+    @SerializedName("id_solicitacao") val requestId: Long
+)
+
+// Novos modelos para /atualizar-pedido
+data class UpdateOrderStatusRequest(
+    @SerializedName("id_solicitacao") val requestId: Long,
+    @SerializedName("novo_status_id") val newStatusId: Int
+)
+
+data class UpdateOrderStatusResponse(
+    @SerializedName("mensagem") val message: String
+)
+
 // ── Pedidos ───────────────────────────────────────────────────────────────────
 data class ServiceRequestCreate(
     @SerializedName("categoryId")         val categoryId: Long,
